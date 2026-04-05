@@ -1,7 +1,8 @@
 strings data.txt | grep "=="
 Bandit Level 9 → Level 10
 Level Goal
-The password for the next level is stored in the file data.txt in one of the few human-readable strings, preceded by several ‘=’ characters.
-
+The password for the next level is stored in the file data.txt in one of the few human-readable strings, 
+preceded by several ‘=’ characters.
+FGUW5ilLVJrxX9kMYMmlN4MgbpfMiqey
 strings grabs all human readable text
 then yk grep
