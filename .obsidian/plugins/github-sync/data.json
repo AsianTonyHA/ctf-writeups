@@ -1,0 +1,9 @@
+{
+  "remoteURL": "git@github.com:AsianTonyHa/ctf-writeups.git",
+  "gitLocation": "",
+  "syncinterval": 0,
+  "isSyncOnLoad": false,
+  "checkStatusOnLoad": true,
+  "noticeLevel": "ALL",
+  "showSyncSuccessNotice": true
+}
