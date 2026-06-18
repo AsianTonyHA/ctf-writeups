@@ -1,0 +1,58 @@
+No Information is provided on the website on the level. For all Leviathan Levels
+
+leviathan0@leviathan:~$ ls -la
+total 24
+drwxr-xr-x   3 root       root       4096 Jun 14 17:55 .
+drwxr-xr-x 150 root       root       4096 Jun 14 17:57 ..
+drwxr-x---   2 leviathan1 leviathan0 4096 Jun 14 17:55 .backup
+-rw-r--r--   1 root       root        220 Mar 31  2024 .bash_logout
+-rw-r--r--   1 root       root       3851 Jun 14 17:36 .bashrc
+-rw-r--r--   1 root       root        807 Mar 31  2024 .profile
+
+First Impression: First thing here can see is that there looks to be like bash files, and one of them has logout so maybe its the level2 logout and somehow it can lead
+to getting level2 permissions or something so you can go to /etc/leviathan_pass and get the password 
+
+drwxr-x---   2 leviathan1 leviathan0 4096 Jun 14 17:55 .backup
+
+This has leviathan 1 as the owner, and leviathan0 (me) as the group. and group has read and execute permissions, so again using this file to maybe get
+the password in /etc/leviathan_pass.
+
+leviathan0@leviathan:~$ cd .backup/
+leviathan0@leviathan:~/.backup$ ls
+bookmarks.html
+leviathan0@leviathan:~/.backup$ wc -l bookmarks.html
+1399 bookmarks.html
+leviathan0@leviathan:~/.backup$
+
+going into .backup/ has a html file with lots of random links and stuff inside so i'm going to leave that aside and maybe it'll be useful later
+
+leviathan0@leviathan:~$ cat .bash_logout
+# ~/.bash_logout: executed by bash(1) when login shell exits.
+
+# when leaving the console clear the screen to increase privacy
+
+if [ "$SHLVL" = 1 ]; then
+    [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+fi
+
+
+What code does: 
+When logging out:
+    If this is the main shell:
+        Clear the screen
+
+
+
+looks pretty useless prob bait
+
+
+
+
+I went back to .backup because it looks like the suspect and the bash files seemed too complicated for LEVEL 1 and using that to solve
+
+Since the bookmarks html file had a lot of stuff in it, i tried to just poke at the obvious by using grep and like keywords, leviathan1, password, username, admin, etc. After trying some out this popped up
+leviathan0@leviathan:~/.backup$ grep leviathan1 bookmarks.html
+<DT><A HREF="http://leviathan.labs.overthewire.org/passwordus.html | This will be fixed later, the password for leviathan1 is 3QJ3TgzHDq" ADD_DATE="1155384634" LAST_CHARSET="ISO-8859-1" ID="rdf:#$2wIU71">password to leviathan1</A>
+
+3QJ3TgzHDq is the password for entering level 2
+

