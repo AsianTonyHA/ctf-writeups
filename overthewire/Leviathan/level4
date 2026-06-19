@@ -1,0 +1,118 @@
+leviathan3@leviathan:~$ ls
+level3
+leviathan3@leviathan:~$ ls -la
+total 40
+drwxr-xr-x   2 root       root        4096 Jun 14 17:55 .
+drwxr-xr-x 150 root       root        4096 Jun 14 17:57 ..
+-rw-r--r--   1 root       root         220 Mar 31  2024 .bash_logout
+-rw-r--r--   1 root       root        3851 Jun 14 17:36 .bashrc
+-r-sr-x---   1 leviathan4 leviathan3 18076 Jun 14 17:55 level3
+-rw-r--r--   1 root       root         807 Mar 31  2024 .profile
+
+
+Once again the start to the level is a SUID file
+
+leviathan3@leviathan:~$ ./level3
+Enter the password> 12134
+bzzzzzzzzap. WRONG
+leviathan3@leviathan:~$ ltrace ./level3
+__libc_start_main(0x80490ed, 1, 0xffffd474, 0 <unfinished ...>
+strcmp("h0no33", "kakaka")                                                                 = -1
+printf("Enter the password> ")                                                             = 20
+fgets(Enter the password> 123
+"123\n", 256, 0xf7fa85c0)                                                            = 0xffffd24c
+strcmp("123\n", "snlprintf\n")                                                             = -1
+puts("bzzzzzzzzap. WRONG"bzzzzzzzzap. WRONG
+)                                                                 = 19
++++ exited (status 0) +++
+
+It's a sort of entering the password, but the ltrace does reveal some interesting bits so I'll resarch what each line of code does.
+
+So the first strcmp is intersting but the 2nd one compares directly with my input, so i messed with it first. 
+
+leviathan3@leviathan:~$ ltrace ./level3
+__libc_start_main(0x80490ed, 1, 0xffffd474, 0 <unfinished ...>
+strcmp("h0no33", "kakaka")                                                                 = -1
+printf("Enter the password> ")                                                             = 20
+fgets(Enter the password> snlprintf
+"snlprintf\n", 256, 0xf7fa85c0)                                                      = 0xffffd24c
+strcmp("snlprintf\n", "snlprintf\n")                                                       = 0
+puts("[You've got shell]!"[You've got shell]!
+)                                                                = 20
+geteuid()                                                                                  = 12003
+geteuid()                                                                                  = 12003
+setreuid(12003, 12003)                                                                     = 0
+system("/bin/sh"$ whoami
+leviathan3
+$ whoami
+
+So the password is right, but the program runs a shell with my permissions (level 3) insteads of it's level 4. 
+
+
+
+leviathan3@leviathan:~$ strace ./level3
+execve("./level3", ["./level3"], 0x7fffffffe350 /* 27 vars */) = 0
+[ Process PID=51 runs in 32 bit mode. ]
+brk(NULL)                               = 0x804d000
+fcntl64(0, F_GETFD)                     = 0
+fcntl64(1, F_GETFD)                     = 0
+fcntl64(2, F_GETFD)                     = 0
+mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xf7fbe000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+statx(3, "", AT_STATX_SYNC_AS_STAT|AT_NO_AUTOMOUNT|AT_EMPTY_PATH, STATX_BASIC_STATS, {stx_mask=STATX_BASIC_STATS|STATX_MNT_ID, stx_attributes=0, stx_mode=S_IFREG|0644, stx_size=42607, ...}) = 0
+mmap2(NULL, 42607, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf7fb3000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib32/libc.so.6", O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\3\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260N\2\0004\0\0\0"..., 512) = 512
+statx(3, "", AT_STATX_SYNC_AS_STAT|AT_NO_AUTOMOUNT|AT_EMPTY_PATH, STATX_BASIC_STATS, {stx_mask=STATX_BASIC_STATS|STATX_MNT_ID, stx_attributes=0, stx_mode=S_IFREG|0755, stx_size=2269948, ...}) = 0
+mmap2(NULL, 2308284, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xf7d7f000
+mmap2(0xf7da2000, 1568768, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x23000) = 0xf7da2000
+mmap2(0xf7f21000, 544768, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1a2000) = 0xf7f21000
+mmap2(0xf7fa6000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x226000) = 0xf7fa6000
+mmap2(0xf7fa9000, 39100, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7fa9000
+close(3)                                = 0
+set_thread_area({entry_number=-1, base_addr=0xf7fbf4c0, limit=0x0fffff, seg_32bit=1, contents=0, read_exec_only=0, limit_in_pages=1, seg_not_present=0, useable=1}) = 0 (entry_number=12)
+set_tid_address(0xf7fbf528)             = 51
+set_robust_list(0xf7fbf52c, 12)         = 0
+rseq(0xf7fbf960, 0x20, 0, 0x53053053)   = 0
+mprotect(0xf7fa6000, 8192, PROT_READ)   = 0
+mprotect(0x804b000, 4096, PROT_READ)    = 0
+mprotect(0xf7ffb000, 8192, PROT_READ)   = 0
+ugetrlimit(RLIMIT_STACK, {rlim_cur=8192*1024, rlim_max=RLIM_INFINITY}) = 0
+munmap(0xf7fb3000, 42607)               = 0
+statx(1, "", AT_STATX_SYNC_AS_STAT|AT_NO_AUTOMOUNT|AT_EMPTY_PATH, STATX_BASIC_STATS, {stx_mask=STATX_BASIC_STATS|STATX_MNT_ID, stx_attributes=0, stx_mode=S_IFCHR|0620, stx_size=0, ...}) = 0
+getrandom("\xc1\x4c\xb7\x53", 4, GRND_NONBLOCK) = 4
+brk(NULL)                               = 0x804d000
+brk(0x806e000)                          = 0x806e000
+brk(0x806f000)                          = 0x806f000
+statx(0, "", AT_STATX_SYNC_AS_STAT|AT_NO_AUTOMOUNT|AT_EMPTY_PATH, STATX_BASIC_STATS, {stx_mask=STATX_BASIC_STATS|STATX_MNT_ID, stx_attributes=0, stx_mode=S_IFCHR|0620, stx_size=0, ...}) = 0
+write(1, "Enter the password> ", 20Enter the password> )    = 20
+read(0,
+
+This is the Strace 
+setreuid32(12003, 12003)   
+and this line stood out (others are gibberish to me :(( ) but this line sets my euid which is the perms the shell has to 12003 which is level 3. Now what this means on how to exploit this? Idk
+
+leviathan3@leviathan:~$ ./level3
+Enter the password> snlprintf
+[You've got shell]!
+$ whoami
+leviathan4
+$ whoami
+leviathan4
+$ id
+uid=12004(leviathan4) gid=12003(leviathan3) groups=12003(leviathan3)
+$ cd ..
+$ pwd
+/home
+$ cd /etc/leviathan_oass
+/bin/sh: 6: cd: can't cd to /etc/leviathan_oass
+$ cd /etc
+$ cd leviathan_pass
+$ ls
+leviathan0  leviathan1  leviathan2  leviathan3  leviathan4  leviathan5  leviathan6  leviathan7
+$ cat leviathan4
+WG1egElCvO
+$
+Alright, It seemed i overcomplicated it too much and the first time i ran it i didnt run id, but idk why it would say im leviathan 3 even though i did it another time and it showed leviathan4, anyways i got the password and spent way too long in a rabbit hole that had no answers.
