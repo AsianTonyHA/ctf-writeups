@@ -1,29 +1,154 @@
-Description:
-This wargame doesn't require any knowledge about programming - just a bit of common
-sense and some knowledge about basic *nix commands. We had no idea that it'd be this
-hard to make an interesting wargame that wouldn't require programming abilities from 
-the players. Hopefully we made an interesting challenge for the new ones.
-Leviathan’s levels are called leviathan0, leviathan1, … etc. and can be accessed on leviathan.labs.overthewire.org through SSH on port 2223.
+No information provided just like Level 1.
 
-To login to the first level use:
+leviathan1@leviathan:~$ ls -la
+total 36
+drwxr-xr-x   2 root       root        4096 Jun 14 17:55 .
+drwxr-xr-x 150 root       root        4096 Jun 14 17:57 ..
+-rw-r--r--   1 root       root         220 Mar 31  2024 .bash_logout
+-rw-r--r--   1 root       root        3851 Jun 14 17:36 .bashrc
+-r-sr-x---   1 leviathan2 leviathan1 15088 Jun 14 17:55 check
+-rw-r--r--   1 root       root         807 Mar 31  2024 .profile
+leviathan1@leviathan:~$
 
-Username: leviathan0
-Password: leviathan0
-Data for the levels can be found in the homedirectories. You can look at /etc/leviathan_pass for the various level passwords.
+First thing is that the check is red and also in the permissions section, an S is shown in group and the group is leviathan1 (me) and that S means
+whenever this thing is ran it runs as the owner leviathan2 (next level) meaning that this will be running the thing to get the password in
+etc/leviathan_pass most likely
 
-Concepts and tools you may find useful to solve this wargame
-Concepts:
+The Check file is a bunch of gibberish, bunch running strings on it gives this:
+Hd5leviathan1@leviathan:~$ strings check
+td8
+/lib/ld-linux.so.2
+_IO_stdin_used
+puts
+__stack_chk_fail
+system
+getchar
+__libc_start_main
+printf
+setreuid
+strcmp
+geteuid
+libc.so.6
+GLIBC_2.4
+GLIBC_2.34
+GLIBC_2.0
+__gmon_start__
+secr
+love
+password:
+/bin/sh
+Wrong password, Good Bye ...
+;*2$"0
+GCC: (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+crt1.o
+__abi_tag
+__wrap_main
+crtstuff.c
+deregister_tm_clones
+__do_global_dtors_aux
+completed.0
+__do_global_dtors_aux_fini_array_entry
+frame_dummy
+__frame_dummy_init_array_entry
+check.c
+__FRAME_END__
+_DYNAMIC
+__GNU_EH_FRAME_HDR
+_GLOBAL_OFFSET_TABLE_
+strcmp@GLIBC_2.0
+__libc_start_main@GLIBC_2.34
+__x86.get_pc_thunk.bx
+printf@GLIBC_2.0
+getchar@GLIBC_2.0
+_edata
+_fini
+__stack_chk_fail@GLIBC_2.4
+geteuid@GLIBC_2.0
+__data_start
+puts@GLIBC_2.0
+system@GLIBC_2.0
+__gmon_start__
+__dso_handle
+_IO_stdin_used
+setreuid@GLIBC_2.0
+_end
+_dl_relocate_static_pie
+_fp_hw
+__bss_start
+__TMC_END__
+_init
+.symtab
+.strtab
+.shstrtab
+.interp
+.note.gnu.build-id
+.note.ABI-tag
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rel.dyn
+.rel.plt
+.init
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.dynamic
+.got
+.got.plt
+.data
+.bss
+.comment
 
-Dynamic program analysis - start here
-Static program analysis - redo from here
-Assembly language - use as foundation
-Tools:
-
-Tools for starting dynamic analysis: ltrace, strace
-Tools for advanced dynamic (and static) analysis: gdb, gef, pwndbg, radare2
-Tools for static analysis: strings, hexdump, objdump, ghidra
-A note on further progression through OverTheWire wargames: While Leviathan can be solved by pure dynamic analysis, i.e. by just running the programs in some way, and without looking at the insides and the execution in the machine (involving assembly language), those skills are useful for the wargames following Leviathan - be sure to learn them here!
-
-Think about analyzing malware - you wouldn’t want to run that either.
+This has abseloutely no meaning to me so i tried to check out what kind of file it was	leviathan1@leviathan:~$ file check
+check: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=5222b367f5b1ff23a8b2d18696bf508c8c8c0e82, for GNU/Linux 3.2.0, not stripped
+leviathan1@leviathan:~$
 
 
+leviathan1@leviathan:~$ file check
+check: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=5222b367f5b1ff23a8b2d18696bf508c8c8c0e82, for GNU/Linux 3.2.0, not stripped
+leviathan1@leviathan:~$ ./check
+password: skibidi
+Wrong password, Good Bye ...
+leviathan1@leviathan:~$
+
+That kind of file also isn't familiar with me, and running the file requires some sort of password and the type of file it is doesn't matter i dont hink
+but all i need to know is that its a SETUID thing
+
+Going back to level 0, it said some toold for "dynamic analisis" which can be used to solve everything is ltrace, basically reading some documentation
+says ltrace says it shows u what a file does while running, which is interesting
+
+leviathan1@leviathan:~$ ltrace ./check
+__libc_start_main(0x80490ed, 1, 0xffffd474, 0 <unfinished ...>
+printf("password: ")                                                      = 10
+getchar(0, 0, 0x786573, 0x646f67password: skibidiohiorizz
+)                                         = 115
+getchar(0, 115, 0x786573, 0x646f67)                                       = 107
+getchar(0, 0x6b73, 0x786573, 0x646f67)                                    = 105
+strcmp("ski", "sex")                                                      = 1
+puts("Wrong password, Good Bye ..."Wrong password, Good Bye ...
+)                                      = 29
++++ exited (status 0) +++
+leviathan1@leviathan:~$
+
+So I see that in the program is alot of stuff I don't understand, but I do see "ski" which is the first 3 letters of my input and, "sex" and
+after i tried to put "sex" as the password
+
+leviathan1@leviathan:~$ ./check
+password: sex
+$ whomi
+/bin/sh: 1: whomi: Permission denied
+$ whoami
+leviathan2
+$ cd /etc/leviathan_pass
+$ ls
+leviathan0  leviathan1  leviathan2  leviathan3  leviathan4  leviathan5  leviathan6  leviathan7
+$ cat leviathan2
+NsN1HwFoyN
+
+It worked and first thing i did is whoami and since i am leviathan2 i went to get the passwrod for da next level.
